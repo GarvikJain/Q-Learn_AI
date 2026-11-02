@@ -1,0 +1,62 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: qlearnai_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: qlearn
+      POSTGRES_PASSWORD: qlearn
+      POSTGRES_DB: qlearnai
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qlearn -d qlearnai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: qlearnai_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+asyncpg://qlearn:qlearn@postgres:5432/qlearnai
+      SECRET_KEY: ${SECRET_KEY:-super-secret-key-change-in-production-please}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      BACKEND_CORS_ORIGINS: '["http://localhost:5173","http://localhost:3000","http://frontend:3000"]'
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000
+    container_name: qlearnai_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

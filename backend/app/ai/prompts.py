@@ -1,0 +1,5 @@
+BEGINNER_EXPLAIN_PROMPT = "Explain the following quantum concept simply, using no heavy math, and use everyday analogies:\n{question}\nContext:\n{context}"
+DEBUG_CIRCUIT_PROMPT = "Analyze this quantum circuit and the following error message. Suggest a fix.\nCircuit:\n{circuit}\nError:\n{error}"
+CONCEPT_DEEP_PROMPT = "Provide a detailed explanation of this quantum concept suitable for intermediate/advanced users:\n{question}\nContext:\n{context}"
+CODE_GENERATE_PROMPT = "Generate Qiskit Python code for the following described circuit:\n{description}"
+SYSTEM_CONTEXT = "You are an AI Tutor for QLearnAI, a platform helping students learn quantum computing. Be encouraging and clear."
